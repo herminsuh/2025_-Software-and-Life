@@ -14,49 +14,50 @@ st.set_page_config(
 # 데이터베이스 역할: LostItem 테이블 초기화
 if 'lost_items' not in st.session_state:
     st.session_state.lost_items = [
+        # 사용자 수정 데이터 (오류 해결: 'floor': 0)
         {
             'item_id': str(uuid.uuid4()),
             'name': '신용카드 (허민서)',
             'location': '매점 입구',
-            'floor': 야외,
+            'floor': 1, # '야외' 대신 '1'층으로 수정 (매점 위치 고려)
             'found_date': '2025-11-26',
             'uploaded_at': datetime(2025, 11, 26, 9, 30),
             'photo_url': 'https://via.placeholder.com/150?text=ID+Card',
-            'uploader_id': '25116 이래나',
+            'uploader_id': 'webdev_01',
             'is_resolved': False
         },
         # 오래된 분실물 테스트용 데이터 (30일 전)
         {
             'item_id': str(uuid.uuid4()),
-            'name': '맹구 키링',
-            'location': '중앙계단 4층쪽',
-            'floor': 4,
+            'name': '오래된 우산',
+            'location': '과학동 복도',
+            'floor': 2,
             'found_date': '2025-10-25',
             'uploaded_at': datetime(2025, 10, 25, 10, 0),
             'photo_url': 'https://via.placeholder.com/150?text=Old+Umbrella',
-            'uploader_id': '25199 허민서',
+            'uploader_id': 'helper_02',
             'is_resolved': False
         },
         {
             'item_id': str(uuid.uuid4()),
-            'name': '보라색 버즈',
-            'location': 'B305호 교실',
-            'floor': 4,
+            'name': '갤럭시 버즈',
+            'location': '3층 305호 교실',
+            'floor': 3,
             'found_date': '2025-11-25',
             'uploaded_at': datetime(2025, 11, 26, 8, 0),
             'photo_url': 'https://via.placeholder.com/150?text=Earbuds',
-            'uploader_id': '25196 표단',
+            'uploader_id': 'helper_02',
             'is_resolved': False
         },
         {
             'item_id': str(uuid.uuid4()),
             'name': '영어 교과서',
-            'location': '도서관 2층',
-            'floor': 7,
+            'location': '도서관 4층',
+            'floor': 4,
             'found_date': '2025-11-20',
             'uploaded_at': datetime(2025, 11, 25, 15, 0),
             'photo_url': 'https://via.placeholder.com/150?text=Book',
-            'uploader_id': '25199 허민서',
+            'uploader_id': 'helper_02',
             'is_resolved': False
         },
     ]
@@ -64,15 +65,15 @@ if 'lost_items' not in st.session_state:
 # 데이터베이스 역할: User 테이블 초기화
 if 'users' not in st.session_state:
     st.session_state.users = {
-        'webdev_01': {'name': '25199 허민서', 'upload_count': 7, 'notification_on': True},
-        'helper_02': {'name': '25116 이래나', 'upload_count': 6, 'notification_on': True},
-        'newbie_03': {'name': '25196 표단', 'upload_count': 3, 'notification_on': False}, # 알림 OFF 테스트용
+        'webdev_01': {'name': '웹 개발자', 'upload_count': 1, 'notification_on': True},
+        'helper_02': {'name': '친절한 학생', 'upload_count': 3, 'notification_on': True},
+        'newbie_03': {'name': '신입생', 'upload_count': 0, 'notification_on': False}, # 알림 OFF 테스트용
     }
 
 # 알림 리스트 초기화
 if 'notifications' not in st.session_state:
     st.session_state.notifications = [
-        {'time': datetime(2025, 11, 26, 9, 30), 'message': '새로운 분실물: 신용카드 (허민서)이 등록되었습니다.'},
+        {'time': datetime(2025, 11, 26, 9, 30), 'message': '새로운 분실물: 학생증 (김하나)이 등록되었습니다.'},
     ]
 
 # --- 2. 메인 페이지 UI 및 탭 구성 ---
@@ -84,9 +85,9 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🏠 홈", 
     "📝 업로드", 
     "🔍 전체/검색 목록", 
-    "⏳ 오래된 분실물", # 요청 5번 기능
+    "⏳ 오래된 분실물",
     "🏆 랭킹", 
-    "🔔 알림/설정" # 요청 7번 기능
+    "🔔 알림/설정"
 ])
 
 # ==============================================================================
@@ -120,14 +121,15 @@ with tab2:
     st.header("📝 새로운 분실물 등록")
     
     with st.form("lost_item_upload_form"):
-        item_name = st.text_input("📦 물건 이름", placeholder="예: 파란색 노트북 파우치")
+        item_name = st.text_input("📦 물건 이름", placeholder="예: 아이폰 14, 체육복 상의")
         
         col1, col2 = st.columns(2)
         with col1:
-            location = st.text_input("📍 발견 장소 (상세)", placeholder="예: A102")
+            location = st.text_input("📍 발견 장소 (상세)", placeholder="예: 305호 앞 복도")
         with col2:
-            floor_options = [1, 2, 3, 4, 5, 6, 7,"야외"]
-            floor = st.selectbox("🏢 층수", floor_options, index=2)
+            # 층수 옵션: 0은 야외/기타를 의미하며, 이는 코드에서 INT로 처리됨
+            floor_options = ["전체", 0, 1, 2, 3, 4, 5] 
+            floor = st.selectbox("🏢 층수 (0: 야외/기타)", floor_options[1:], index=2) # '전체' 제외하고 0-5만 선택지로 제공
         
         found_date = st.date_input("📅 발견 날짜", datetime.now().date())
         current_uploader_id = st.selectbox("🔑 업로더 ID (테스트용)", list(st.session_state.users.keys()))
@@ -160,12 +162,12 @@ with tab2:
             # 2. User 테이블: 업로드 횟수 증가
             st.session_state.users[current_uploader_id]['upload_count'] += 1
             
-            # 3. 알림 생성 (요청 7번 기능)
+            # 3. 알림 생성
             for user_id, user_data in st.session_state.users.items():
                 if user_data['notification_on']:
-                    st.session_state.notifications.insert(0, { # 최신 알림을 맨 앞에 추가
+                    st.session_state.notifications.insert(0, {
                         'time': datetime.now(), 
-                        'message': f"🔔 **{user_data['name']}**님! 새로운 분실물: {item_name}이 등록되었습니다. (업로더: {st.session_state.users[current_uploader_id]['name']})"
+                        'message': f"🔔 **{user_data['name']}**님! 새로운 분실물: {item_name}이 등록되었습니다."
                     })
 
             st.success(f"🎉 **{item_name}** 분실물 정보가 성공적으로 등록되었습니다!")
@@ -188,7 +190,8 @@ with tab3:
             search_query = st.text_input("📝 물건 이름/장소 검색", placeholder="예: 이어폰, 305호")
         
         with col_floor:
-            floor_filter = st.selectbox("🏢 층수 필터", ["전체", "야외", 1, 2, 3, 4, 5, 6, 7], index=0)
+            # 층수 필터링은 0(야외/기타) 포함하여 전체 숫자로 필터링
+            floor_filter = st.selectbox("🏢 층수 필터", ["전체", 0, 1, 2, 3, 4, 5], index=0)
             
         with col_date:
             sort_order = st.radio("⏳ 정렬 기준", ["최신순", "오래된순"], index=0, horizontal=True)
@@ -209,13 +212,16 @@ with tab3:
 
         # 표시 형식 정리
         filtered_df['업로드 시각'] = filtered_df['uploaded_at'].dt.strftime('%Y-%m-%d %H:%M')
+        # 층수 0을 '야외/기타'로 표시
+        filtered_df['floor_display'] = filtered_df['floor'].apply(lambda x: '야외/기타' if x == 0 else str(x) + '층')
+
 
         display_df = filtered_df[[
-            'name', 'location', 'floor', 'found_date', '업로드 시각', 'uploader_id', 'is_resolved'
+            'name', 'location', 'floor_display', 'found_date', '업로드 시각', 'uploader_id', 'is_resolved'
         ]].rename(columns={
             'name': '물건 이름',
             'location': '발견 장소',
-            'floor': '층수',
+            'floor_display': '층수',
             'found_date': '발견 날짜',
             'uploader_id': '업로더 ID',
             'is_resolved': '해결 여부'
@@ -225,12 +231,12 @@ with tab3:
         st.caption(f"총 {len(filtered_df)}개의 분실물이 검색되었습니다.")
 
 # ==============================================================================
-# 탭 4: 오래된 분실물 게시판 (Old Lost Items) - 요청 5번 기능
+# 탭 4: 오래된 분실물 게시판 (Old Lost Items)
 # ==============================================================================
 with tab4:
     st.header("⏳ 오래된 분실물")
     
-    # 30일(예시)이 지난 분실물을 찾습니다.
+    # 30일이 지난 분실물을 찾습니다.
     threshold_date = datetime.now() - timedelta(days=30)
     
     if df.empty:
@@ -239,23 +245,24 @@ with tab4:
         old_items_df = df[df['uploaded_at'] < threshold_date].sort_values(by='uploaded_at', ascending=True)
         
         st.warning(f"⚠️ **{threshold_date.strftime('%Y년 %m월 %d일')}** 이전에 등록된 분실물 **{len(old_items_df)}개**입니다.")
-        st.caption("장기간 주인을 찾지 못한 물건들은 일정 기간 후 학교 행정실로 인계될 수 있습니다.")
-
+        
         # 표시 형식 정리
         old_items_df['업로드 시각'] = old_items_df['uploaded_at'].dt.strftime('%Y-%m-%d %H:%M')
+        old_items_df['floor_display'] = old_items_df['floor'].apply(lambda x: '야외/기타' if x == 0 else str(x) + '층')
+
 
         display_old_df = old_items_df[[
-            'name', 'location', 'floor', 'found_date', '업로드 시각', 'is_resolved'
+            'name', 'location', 'floor_display', 'found_date', '업로드 시각', 'is_resolved'
         ]].rename(columns={
             'name': '물건 이름',
             'location': '발견 장소',
-            'floor': '층수',
+            'floor_display': '층수',
             'found_date': '발견 날짜',
             'is_resolved': '해결 여부'
         })
         
         if display_old_df.empty:
-            st.info("아직 30일 이상 지난 오래된 분실물은 없습니다. (현재: 2025-11-26)")
+            st.info("아직 30일 이상 지난 오래된 분실물은 없습니다.")
         else:
             st.dataframe(display_old_df, use_container_width=True, hide_index=True)
 
@@ -286,29 +293,26 @@ with tab5:
     st.caption("업로드 횟수는 분실물을 발견하여 등록한 횟수를 의미합니다.")
 
 # ==============================================================================
-# 탭 6: 알림/설정 (Notifications) - 요청 7번 기능
+# 탭 6: 알림/설정 (Notifications)
 # ==============================================================================
 with tab6:
     st.header("🔔 알림 리스트 및 설정")
     
-    # 임시 로그인 사용자 (알림 ON/OFF 설정은 이 사용자를 대상으로 합니다)
+    # 임시 로그인 사용자 (테스트를 위해 ID 'webdev_01'을 대상으로 설정합니다)
     st.subheader("⚙️ 알림 수신 설정 (현재 사용자: 웹 개발자)")
     target_user_id = 'webdev_01'
     
-    # 현재 설정 상태 가져오기
     current_setting = st.session_state.users.get(target_user_id, {}).get('notification_on', True)
     
-    # 알림 ON/OFF 토글
     new_setting = st.checkbox(
         f"새 분실물 등록 시 알림 받기 (현재: {'ON' if current_setting else 'OFF'})", 
         value=current_setting
     )
     
-    # 설정 변경 시 session_state 업데이트
     if new_setting != current_setting:
         st.session_state.users[target_user_id]['notification_on'] = new_setting
         st.toast("알림 설정이 저장되었습니다!", icon='✅')
-        st.rerun() # 설정 변경을 즉시 반영
+        st.rerun()
 
     st.markdown("---")
     
@@ -316,7 +320,6 @@ with tab6:
     
     if st.session_state.notifications:
         
-        # 알림 DataFrame으로 변환
         notif_df = pd.DataFrame(st.session_state.notifications)
         notif_df['시간'] = notif_df['time'].dt.strftime('%Y-%m-%d %H:%M:%S')
         
