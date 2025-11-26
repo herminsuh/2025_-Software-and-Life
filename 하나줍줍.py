@@ -16,47 +16,47 @@ if 'lost_items' not in st.session_state:
     st.session_state.lost_items = [
         {
             'item_id': str(uuid.uuid4()),
-            'name': '학생증 (김하나)',
-            'location': '급식실 입구',
-            'floor': 1,
+            'name': '신용카드 (허민서)',
+            'location': '매점 입구',
+            'floor': 야외,
             'found_date': '2025-11-26',
             'uploaded_at': datetime(2025, 11, 26, 9, 30),
             'photo_url': 'https://via.placeholder.com/150?text=ID+Card',
-            'uploader_id': 'webdev_01',
+            'uploader_id': '25116 이래나',
             'is_resolved': False
         },
         # 오래된 분실물 테스트용 데이터 (30일 전)
         {
             'item_id': str(uuid.uuid4()),
-            'name': '오래된 우산',
-            'location': '과학동 복도',
-            'floor': 2,
+            'name': '맹구 키링',
+            'location': '중앙계단 4층쪽',
+            'floor': 4,
             'found_date': '2025-10-25',
             'uploaded_at': datetime(2025, 10, 25, 10, 0),
             'photo_url': 'https://via.placeholder.com/150?text=Old+Umbrella',
-            'uploader_id': 'helper_02',
+            'uploader_id': '25199 허민서',
             'is_resolved': False
         },
         {
             'item_id': str(uuid.uuid4()),
-            'name': '갤럭시 버즈',
-            'location': '3층 305호 교실',
-            'floor': 3,
+            'name': '보라색 버즈',
+            'location': 'B305호 교실',
+            'floor': 4,
             'found_date': '2025-11-25',
             'uploaded_at': datetime(2025, 11, 26, 8, 0),
             'photo_url': 'https://via.placeholder.com/150?text=Earbuds',
-            'uploader_id': 'helper_02',
+            'uploader_id': '25196 표단',
             'is_resolved': False
         },
         {
             'item_id': str(uuid.uuid4()),
             'name': '영어 교과서',
-            'location': '도서관 4층',
-            'floor': 4,
+            'location': '도서관 2층',
+            'floor': 7,
             'found_date': '2025-11-20',
             'uploaded_at': datetime(2025, 11, 25, 15, 0),
             'photo_url': 'https://via.placeholder.com/150?text=Book',
-            'uploader_id': 'helper_02',
+            'uploader_id': '25199 허민서',
             'is_resolved': False
         },
     ]
@@ -64,15 +64,15 @@ if 'lost_items' not in st.session_state:
 # 데이터베이스 역할: User 테이블 초기화
 if 'users' not in st.session_state:
     st.session_state.users = {
-        'webdev_01': {'name': '웹 개발자', 'upload_count': 1, 'notification_on': True},
-        'helper_02': {'name': '친절한 학생', 'upload_count': 3, 'notification_on': True},
-        'newbie_03': {'name': '신입생', 'upload_count': 0, 'notification_on': False}, # 알림 OFF 테스트용
+        'webdev_01': {'name': '25199 허민서', 'upload_count': 7, 'notification_on': True},
+        'helper_02': {'name': '25116 이래나', 'upload_count': 6, 'notification_on': True},
+        'newbie_03': {'name': '25196 표단', 'upload_count': 3, 'notification_on': False}, # 알림 OFF 테스트용
     }
 
 # 알림 리스트 초기화
 if 'notifications' not in st.session_state:
     st.session_state.notifications = [
-        {'time': datetime(2025, 11, 26, 9, 30), 'message': '새로운 분실물: 학생증 (김하나)이 등록되었습니다.'},
+        {'time': datetime(2025, 11, 26, 9, 30), 'message': '새로운 분실물: 신용카드 (허민서)이 등록되었습니다.'},
     ]
 
 # --- 2. 메인 페이지 UI 및 탭 구성 ---
@@ -120,13 +120,13 @@ with tab2:
     st.header("📝 새로운 분실물 등록")
     
     with st.form("lost_item_upload_form"):
-        item_name = st.text_input("📦 물건 이름", placeholder="예: 아이폰 14, 체육복 상의")
+        item_name = st.text_input("📦 물건 이름", placeholder="예: 파란색 노트북 파우치")
         
         col1, col2 = st.columns(2)
         with col1:
-            location = st.text_input("📍 발견 장소 (상세)", placeholder="예: 3층 305호 앞 복도")
+            location = st.text_input("📍 발견 장소 (상세)", placeholder="예: A102")
         with col2:
-            floor_options = [1, 2, 3, 4, 5, 0]
+            floor_options = [1, 2, 3, 4, 5, 6, 7,"야외"]
             floor = st.selectbox("🏢 층수", floor_options, index=2)
         
         found_date = st.date_input("📅 발견 날짜", datetime.now().date())
@@ -188,7 +188,7 @@ with tab3:
             search_query = st.text_input("📝 물건 이름/장소 검색", placeholder="예: 이어폰, 305호")
         
         with col_floor:
-            floor_filter = st.selectbox("🏢 층수 필터", ["전체", 0, 1, 2, 3, 4, 5], index=0)
+            floor_filter = st.selectbox("🏢 층수 필터", ["전체", "야외", 1, 2, 3, 4, 5, 6, 7], index=0)
             
         with col_date:
             sort_order = st.radio("⏳ 정렬 기준", ["최신순", "오래된순"], index=0, horizontal=True)
