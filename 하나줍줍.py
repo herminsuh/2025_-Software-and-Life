@@ -28,9 +28,9 @@ if 'lost_items' not in st.session_state:
         # 오래된 분실물 테스트용 데이터 (30일 전)
         {
             'item_id': str(uuid.uuid4()),
-            'name': '오래된 우산',
-            'location': '과학동 복도',
-            'floor': 2,
+            'name': 'c타입 충전기',
+            'location': 'A동 움파',
+            'floor': 3,
             'found_date': '2025-10-25',
             'uploaded_at': datetime(2025, 10, 25, 10, 0),
             'photo_url': 'https://via.placeholder.com/150?text=Old+Umbrella',
@@ -40,7 +40,7 @@ if 'lost_items' not in st.session_state:
         {
             'item_id': str(uuid.uuid4()),
             'name': '갤럭시 버즈',
-            'location': '3층 305호 교실',
+            'location': 'B305',
             'floor': 3,
             'found_date': '2025-11-25',
             'uploaded_at': datetime(2025, 11, 26, 8, 0),
@@ -51,7 +51,7 @@ if 'lost_items' not in st.session_state:
         {
             'item_id': str(uuid.uuid4()),
             'name': '영어 교과서',
-            'location': '도서관 4층',
+            'location': '급식실',
             'floor': 4,
             'found_date': '2025-11-20',
             'uploaded_at': datetime(2025, 11, 25, 15, 0),
@@ -64,9 +64,9 @@ if 'lost_items' not in st.session_state:
 # 데이터베이스 역할: User 테이블 초기화
 if 'users' not in st.session_state:
     st.session_state.users = {
-        'webdev_01': {'name': '웹 개발자', 'upload_count': 1, 'notification_on': True},
-        'helper_02': {'name': '친절한 학생', 'upload_count': 3, 'notification_on': True},
-        'newbie_03': {'name': '신입생', 'upload_count': 0, 'notification_on': False}, # 알림 OFF 테스트용
+        'webdev_01': {'name': '25199 허민서', 'upload_count': 1, 'notification_on': True},
+        'helper_02': {'name': '25116 이래나', 'upload_count': 3, 'notification_on': True},
+        'newbie_03': {'name': '25196 표단', 'upload_count': 0, 'notification_on': False}, # 알림 OFF 테스트용
     }
 
 # 알림 리스트 초기화
