@@ -51,7 +51,7 @@ st.markdown(
 )
 
 # ============================================
-# 초기 데이터 생성 (발견 날짜 필드 제거, 업로드 날짜 기준 설정)
+# 초기 데이터 생성
 # ============================================
 def init_data():
     if "lost_items" not in st.session_state:
@@ -63,7 +63,6 @@ def init_data():
                 "name": "하나카드",
                 "location": "매점 입구",
                 "floor": 1,
-                # "found_date": (now - timedelta(days=5)).date(), # 발견 날짜 제거
                 "uploaded_at": now - timedelta(days=5, hours=3), # 최근 항목 테스트용
                 "image_url": "https://community-api-cdn.kr.karrotmarket.com/v1/resource/images/load?id=kr-community%231987053135104090112",
                 "image_data": None,
@@ -75,7 +74,6 @@ def init_data():
                 "name": "C타입 충전기",
                 "location": "A동 움파",
                 "floor": 3,
-                # "found_date": (now - timedelta(days=35)).date(), # 발견 날짜 제거
                 "uploaded_at": now - timedelta(days=35, hours=10), # 30일 이상 오래된 항목 테스트용
                 "image_url": "https://my.snu.ac.kr/dext5editor/handler/image_handler.jsp?fn=%2F2025%2F10%2F20251023_170208372_05296.jpg",
                 "image_data": None,
@@ -87,7 +85,6 @@ def init_data():
                 "name": "갤럭시 버즈",
                 "location": "B305",
                 "floor": 3,
-                # "found_date": (now - timedelta(days=1)).date(), # 발견 날짜 제거
                 "uploaded_at": now - timedelta(days=1, hours=8), # 최근 항목 테스트용
                 "image_url": "https://community-api-cdn.kr.karrotmarket.com/v1/resource/images/load?id=kr-community%231750767056434888704",
                 "image_data": None,
@@ -99,7 +96,6 @@ def init_data():
                 "name": "영어 교과서",
                 "location": "급식실",
                 "floor": 4,
-                # "found_date": (now - timedelta(days=10)).date(), # 발견 날짜 제거
                 "uploaded_at": now - timedelta(days=10, hours=15), # 최근 항목 테스트용
                 "image_url": "https://static.mercdn.net/item/detail/orig/photos/m16043469936_1.jpg?1736746405",
                 "image_data": None,
@@ -145,10 +141,10 @@ def show_item_image(item, width=None, use_column_width=False):
 st.title("🎒 하나고 온라인 분실물함 - 하나줍줍")
 
 tabs = st.tabs([
-    "🏠 홈 (최근 분실물)", # 탭 이름 변경: 최근 항목
+    "🏠 홈 (최근 분실물)",
     "📝 업로드",
     "🔍 전체/검색 목록",
-    "⏳ 오래된 분실물", # 탭 이름 변경: 오래된 항목
+    "⏳ 오래된 분실물",
     "🏆 랭킹",
     "🔔 알림/설정",
 ])
@@ -181,7 +177,7 @@ with tabs[0]:
 
 
 # ===========================================================
-# TAB 2 — 업로드 (발견 날짜 필드 제거)
+# TAB 2 — 업로드 (st.rerun() 추가)
 # ===========================================================
 with tabs[1]:
     st.subheader("📝 새로운 분실물 등록")
@@ -193,7 +189,6 @@ with tabs[1]:
             location = st.text_input("📍 발견 장소")
         with colB:
             floor = st.selectbox("🏢 층수 (0: 기타)", [0,1,2,3,4,5,6,7], index=3)
-            # found_date = st.date_input("📅 발견 날짜", datetime.now().date()) # 발견 날짜 제거
 
         uploader = st.text_input("🙋 업로더 이름", value="25116 이래나")
 
@@ -212,7 +207,6 @@ with tabs[1]:
             "name": name,
             "location": location,
             "floor": floor,
-            # "found_date": None, # 발견 날짜 필드 제거
             "uploaded_at": datetime.now(),
             "image_url": None if image_b64 else "https://placehold.co/400x250?text=Lost+Item",
             "image_data": image_b64,
@@ -238,10 +232,13 @@ with tabs[1]:
 
         st.success("🎉 분실물이 성공적으로 등록되었습니다! 홈 탭에서 바로 확인할 수 있습니다.")
         st.balloons()
+        
+        # 🚨 새로고침 명령: 세션 상태를 반영하여 페이지를 처음부터 다시 실행
+        st.rerun()
 
 
 # ===========================================================
-# TAB 3 — 전체/검색 목록 (테이블에서 발견 날짜 제거)
+# TAB 3 — 전체/검색 목록
 # ===========================================================
 with tabs[2]:
     st.subheader("🔍 분실물 검색 및 전체 목록")
@@ -270,7 +267,6 @@ with tabs[2]:
 
     # 표 출력
     tmp = filtered.copy()
-    # tmp["발견 날짜"] = tmp["found_date"].astype(str) # 발견 날짜 제거
     tmp["업로드 시각"] = tmp["uploaded_at"].dt.strftime("%Y-%m-%d %H:%M")
 
     tmp = tmp.rename(columns={
@@ -281,7 +277,6 @@ with tabs[2]:
         "resolved": "해결 여부"
     })
 
-    # "발견 날짜" 컬럼 제거
     st.dataframe(
         tmp[["물건 이름","발견 장소","층수","업로드 시각","업로더","해결 여부"]],
         use_container_width=True,
@@ -292,7 +287,6 @@ with tabs[2]:
     st.markdown("### 🖼 사진 카드로 보기")
 
     for _, row in filtered.iterrows():
-        # 'found_date' 필드가 없는 경우 예외 처리
         item = next(x for x in st.session_state.lost_items if x["id"] == row["id"])
         st.markdown("<div class='item-card'>", unsafe_allow_html=True)
         cols = st.columns([1,2])
@@ -301,14 +295,13 @@ with tabs[2]:
         with cols[1]:
             st.markdown(f"**📦 {item['name']}**")
             st.write(f"📍 {item['location']} · 🏢 {item['floor']}층")
-            # st.write(f"📅 발견: {item['found_date']}") # 발견 날짜 제거
             st.write(f"⬆️ 업로드: {item['uploaded_at'].strftime('%Y-%m-%d %H:%M')}")
             st.write(f"🙋 업로더: {item['uploader']}")
         st.markdown("</div>", unsafe_allow_html=True)
 
 
 # ===========================================================
-# TAB 4 — 오래된 분실물 (업로드 날짜 기준 30일 경과)
+# TAB 4 — 오래된 분실물
 # ===========================================================
 with tabs[3]:
     st.subheader("⏳ 오래된 분실물 (업로드 30일 이상 경과)")
@@ -325,7 +318,6 @@ with tabs[3]:
         st.info("30일 이상 지난 분실물이 없습니다.")
     else:
         df_old = pd.DataFrame(old_items)
-        # df_old["발견 날짜"] = df_old["found_date"].astype(str) # 발견 날짜 제거
         df_old["업로드 시각"] = df_old["uploaded_at"].dt.strftime("%Y-%m-%d %H:%M")
 
         df_old = df_old.rename(columns={
@@ -336,7 +328,6 @@ with tabs[3]:
             "resolved": "해결 여부"
         })
 
-        # "발견 날짜" 컬럼 제거
         st.dataframe(
             df_old[["물건 이름","발견 장소","층수","업로드 시각","업로더","해결 여부"]],
             use_container_width=True,
