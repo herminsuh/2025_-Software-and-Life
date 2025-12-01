@@ -51,18 +51,20 @@ st.markdown(
 )
 
 # ============================================
-# 초기 데이터 생성
+# 초기 데이터 생성 (수정된 부분: 현재 날짜 기준으로 과거 시간 설정)
 # ============================================
 def init_data():
     if "lost_items" not in st.session_state:
+        # 현재 시간을 기준으로 과거 시간을 계산하여 초기 데이터 설정
+        now = datetime.now()
         st.session_state.lost_items = [
             {
                 "id": str(uuid.uuid4()),
                 "name": "하나카드",
                 "location": "매점 입구",
                 "floor": 1,
-                "found_date": datetime(2025, 11, 26).date(),
-                "uploaded_at": datetime(2025, 11, 26, 9, 30),
+                "found_date": (now - timedelta(days=5)).date(),
+                "uploaded_at": now - timedelta(days=5, hours=3),
                 "image_url": "https://community-api-cdn.kr.karrotmarket.com/v1/resource/images/load?id=kr-community%231987053135104090112",
                 "image_data": None,
                 "uploader": "25199 허민서",
@@ -73,8 +75,8 @@ def init_data():
                 "name": "C타입 충전기",
                 "location": "A동 움파",
                 "floor": 3,
-                "found_date": datetime(2025, 10, 25).date(),
-                "uploaded_at": datetime(2025, 10, 25, 10, 0),
+                "found_date": (now - timedelta(days=35)).date(), # 35일 전 발견
+                "uploaded_at": now - timedelta(days=35, hours=10), # 35일 전 업로드 (-> 오래된 분실물 탭에서 확인 가능)
                 "image_url": "https://my.snu.ac.kr/dext5editor/handler/image_handler.jsp?fn=%2F2025%2F10%2F20251023_170208372_05296.jpg",
                 "image_data": None,
                 "uploader": "25116 이래나",
@@ -85,8 +87,8 @@ def init_data():
                 "name": "갤럭시 버즈",
                 "location": "B305",
                 "floor": 3,
-                "found_date": datetime(2025, 11, 25).date(),
-                "uploaded_at": datetime(2025, 11, 26, 8, 0),
+                "found_date": (now - timedelta(days=1)).date(),
+                "uploaded_at": now - timedelta(days=1, hours=8),
                 "image_url": "https://community-api-cdn.kr.karrotmarket.com/v1/resource/images/load?id=kr-community%231750767056434888704",
                 "image_data": None,
                 "uploader": "25116 이래나",
@@ -97,8 +99,8 @@ def init_data():
                 "name": "영어 교과서",
                 "location": "급식실",
                 "floor": 4,
-                "found_date": datetime(2025, 11, 20).date(),
-                "uploaded_at": datetime(2025, 11, 25, 15, 0),
+                "found_date": (now - timedelta(days=10)).date(),
+                "uploaded_at": now - timedelta(days=10, hours=15),
                 "image_url": "https://static.mercdn.net/item/detail/orig/photos/m16043469936_1.jpg?1736746405",
                 "image_data": None,
                 "uploader": "25116 이래나",
@@ -113,9 +115,11 @@ def init_data():
         }
 
     if "notifications" not in st.session_state:
+        # 알림 시간도 현재 시간 기준으로 수정
+        now = datetime.now()
         st.session_state.notifications = [
             {
-                "time": datetime(2025, 11, 26, 9, 30),
+                "time": now - timedelta(days=5, hours=3),
                 "message": "새로운 분실물 '하나카드'가 등록되었습니다.",
             }
         ]
@@ -151,11 +155,12 @@ tabs = st.tabs([
 ])
 
 # ===========================================================
-# TAB 1 — 홈
+# TAB 1 — 홈 (최근 12개 항목 표시)
 # ===========================================================
 with tabs[0]:
     st.subheader("✨ 최근 분실물 게시판")
 
+    # uploaded_at을 기준으로 정렬하여 최신순으로 12개 항목을 가져옴
     items = sorted(
         st.session_state.lost_items,
         key=lambda x: x["uploaded_at"],
@@ -164,13 +169,14 @@ with tabs[0]:
 
     cols = st.columns(3)
     for i, item in enumerate(items):
+        # Resolved 항목 필터링 로직은 없지만, 일단 모든 항목 표시
         with cols[i % 3]:
             st.markdown("<div class='item-card'>", unsafe_allow_html=True)
             st.markdown(f"**📦 {item['name']}**")
             show_item_image(item, use_column_width=True)
             st.caption(f"📍 {item['location']} | 🏢 {item['floor']}층")
             st.caption(
-                f"📅 발견: {item['found_date']}  ·  "
+                f"📅 발견: {item['found_date']}  ·  "
                 f"⬆️ 업로드: {item['uploaded_at'].strftime('%m-%d %H:%M')}"
             )
             st.caption(f"🙋 업로더: {item['uploader']}")
@@ -210,7 +216,7 @@ with tabs[1]:
             "location": location,
             "floor": floor,
             "found_date": found_date,
-            "uploaded_at": datetime.now(),
+            "uploaded_at": datetime.now(), # 현재 시각으로 설정
             "image_url": None if image_b64 else "https://placehold.co/400x250?text=Lost+Item",
             "image_data": image_b64,
             "uploader": uploader,
@@ -233,7 +239,7 @@ with tabs[1]:
             },
         )
 
-        st.success("🎉 분실물이 성공적으로 등록되었습니다!")
+        st.success("🎉 분실물이 성공적으로 등록되었습니다! 홈 탭에서 확인해 보세요.")
         st.balloons()
 
 
@@ -309,6 +315,7 @@ with tabs[3]:
     st.subheader("⏳ 오래된 분실물 (30일 이상 지난 분실물)")
 
     today = datetime.now()
+    # uploaded_at이 30일 이상 지난 항목만 필터링
     old_items = [
         item for item in st.session_state.lost_items
         if item["uploaded_at"] < today - timedelta(days=30)
@@ -374,10 +381,11 @@ with tabs[5]:
         value=stats["notification_on"]
     )
 
+    # 알림 설정 변경 로직
     if notif_on != stats["notification_on"]:
         stats["notification_on"] = notif_on
         st.session_state.user_stats[current_user] = stats
-        st.success("알림 설정이 저장되었습니다.")
+        st.rerun() # 설정을 반영하기 위해 재실행
 
     st.markdown("---")
     st.markdown("### 📋 전체 알림 내역")
@@ -391,3 +399,4 @@ with tabs[5]:
         if st.button("🗑️ 알림 모두 지우기"):
             st.session_state.notifications = []
             st.success("알림이 삭제되었습니다.")
+            st.rerun() # 삭제 후 상태를 반영하기 위해 재실행
